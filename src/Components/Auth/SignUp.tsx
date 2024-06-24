@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import * as firebase from 'firebase/app';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, onAuthStateChanged } from 'firebase/auth';
 import './SignUp.css';
+import { addDoc, collection } from 'firebase/firestore';
+import { auth, db } from '../../firebaseConfig';
 
 interface SignUpProps {
     onSignUp: (user: any) => void; // replace 'any' with the type of your user
@@ -9,33 +10,46 @@ interface SignUpProps {
 
   const SignUp: React.FC<SignUpProps> = ({ onSignUp }) => {
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyDBvRQSTkxTv3RkWUyFSr5pUcvVStjhKEo",
-        authDomain: "stitchsync-551ec.firebaseapp.com",
-        projectId: "stitchsync-551ec",
-        storageBucket: "stitchsync-551ec.appspot.com",
-        messagingSenderId: "509364225849",
-        appId: "1:509364225849:web:ddfb6d532586f724600ae8",
-        measurementId: "G-M3C7LCMB8F"
-    };
-    const app = firebase.initializeApp(firebaseConfig);
-    const auth = getAuth(app);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
 
-    const handleSubmit = (event: React.FormEvent) => {
+    interface UserData {
+        uid: string;
+        email: string;
+        // add any other user info you want to store
+    }
+
+    const createUser = async (userData: UserData): Promise<string> => {
+        try {
+            const usersCollection = collection(db, 'users');
+            const newUserRef = await addDoc(usersCollection, userData);
+            console.log('User created with ID: ', newUserRef.id);
+            return newUserRef.id;
+        } catch (error) {
+            console.error('Error creating user: ', error);
+            throw new Error('Failed to create user');
+        }
+    }
+
+    const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
         event.preventDefault();
-        createUserWithEmailAndPassword(auth, email, password)
-            .then((userCredential) => {
-                // The user has been signed up
-                const user = userCredential.user;
-                onSignUp(user);
-            })
-            .catch((error: any) => {
-                // There was an error signing up the user
-                const errorCode = error.code;
-                const errorMessage = error.message;
+        try {
+            await createUserWithEmailAndPassword(auth, email, password);
+    
+            onAuthStateChanged(auth, (user) => {
+                if (user) {
+                    const userData = {
+                        uid: user.uid,
+                        email: user.email || '',
+                        // add any other user info you want to store
+                    }
+                    console.log(userData)
+                    createUser(userData);
+                }
             });
+        } catch (error) {
+            console.error(error);
+        }
     };
 
     return (

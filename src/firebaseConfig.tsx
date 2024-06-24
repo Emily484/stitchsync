@@ -1,7 +1,8 @@
-import firebase from 'firebase/app';
-import 'firebase/auth';
+import { initializeApp } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import { getAuth } from 'firebase/auth';
 
-const firebaseConfig = {
+export const firebaseConfig = {
   apiKey: "AIzaSyDBvRQSTkxTv3RkWUyFSr5pUcvVStjhKEo",
   authDomain: "stitchsync-551ec.firebaseapp.com",
   projectId: "stitchsync-551ec",
@@ -11,4 +12,6 @@ const firebaseConfig = {
   measurementId: "G-M3C7LCMB8F"
 };
 
-firebase.initializeApp(firebaseConfig);
+export const app = initializeApp(firebaseConfig);
+export const db = getFirestore(app);
+export const auth = getAuth(app);

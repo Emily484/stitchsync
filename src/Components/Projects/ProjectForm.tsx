@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc } from 'firebase/firestore';
+import {collection, addDoc } from 'firebase/firestore';
+import { db, auth } from '../../firebaseConfig';;
 
 const ProjectForm: React.FC = () => {
   const [name, setName] = useState('');
@@ -10,23 +10,12 @@ const ProjectForm: React.FC = () => {
   const [targetCompletionDate, setTargetCompletionDate] = useState('');
   const [progress, setProgress] = useState(0);
 
-  const firebaseConfig = {
-    apiKey: "AIzaSyDBvRQSTkxTv3RkWUyFSr5pUcvVStjhKEo",
-    authDomain: "stitchsync-551ec.firebaseapp.com",
-    projectId: "stitchsync-551ec",
-    storageBucket: "stitchsync-551ec.appspot.com",
-    messagingSenderId: "509364225849",
-    appId: "1:509364225849:web:ddfb6d532586f724600ae8",
-    measurementId: "G-M3C7LCMB8F"
-};
-
-  const app = initializeApp(firebaseConfig);
-
-  const db = getFirestore(app);
-
 const addProject = async (project: any) => {
     try {
-        const docRef = await addDoc(collection(db, 'projects'), project);
+        const docRef = await addDoc(collection(db, 'projects'), {
+            ...project,
+            userId: auth?.currentUser?.uid, // add the user ID to the project
+        });
         console.log('Document written with ID: ', docRef.id);
     } catch (e) {
         console.error('Error adding document: ', e);
